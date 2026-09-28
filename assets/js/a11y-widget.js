@@ -380,7 +380,8 @@
             'aria-haspopup': 'dialog',
             'aria-expanded': 'false',
             'aria-controls': 'a11yw-panel',
-            'aria-label': 'Accessibility menu'
+            'aria-label': 'Accessibility menu',
+            'title': 'Accessibility menu'
         }, ICONS.toggle.replace('<svg', '<svg aria-hidden="true" focusable="false"'));
 
         ui.panel = el('div', {

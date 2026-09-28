@@ -178,8 +178,15 @@
     gap: 10px;
 }
 
+.a11yw-tile-wrap {
+    position: relative;
+    display: flex;
+}
+
 .a11yw-tile {
     position: relative;
+    flex: 1;
+    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -201,6 +208,50 @@
     background: var(--a11yw-accent);
     color: var(--a11yw-accent-contrast);
     border-color: var(--a11yw-highlight);
+}
+
+/* Checkbox in the corner of an active tile: switches the feature off.
+   White with a black check so it reads on any accent colour. */
+.a11yw-tile-off {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: 1px solid #000;
+    border-radius: 50%;
+    background: #fff;
+    color: #000;
+    line-height: 0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .2);
+}
+
+.a11yw-tile-off svg {
+    width: 12px;
+    height: 12px;
+}
+
+.a11yw-tile-off svg path {
+    stroke-width: 2.6;
+}
+
+/* Invisible 28px hit area around the 20px circle (WCAG 2.2 target size, 2.5.8) */
+.a11yw-tile-off::before {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+}
+
+.a11yw-tile-off:hover {
+    background: #000;
+    color: #fff;
+    border-color: #fff;
 }
 
 .a11yw-tile-icon {
@@ -270,6 +321,82 @@
 
 .a11yw-foot {
     padding: 0 14px 14px;
+}
+
+/* On/off switch (Oversized widget) */
+.a11yw-switch {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    min-height: 44px;
+    margin: 0 0 10px !important;
+    padding: 8px 12px 8px 14px;
+    border: 1px solid var(--a11yw-border);
+    border-radius: 10px;
+    background: var(--a11yw-surface);
+    font-weight: 700;
+    text-align: left;
+}
+
+.a11yw-switch:hover {
+    border-color: var(--a11yw-accent);
+}
+
+.a11yw-switch-track {
+    position: relative;
+    flex: none;
+    width: 40px;
+    height: 22px;
+    border-radius: 11px;
+    background: #7b808a;
+    transition: background .15s ease;
+}
+
+.a11yw-switch-knob {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .3);
+    transition: transform .15s ease;
+}
+
+.a11yw-switch[aria-checked="true"] .a11yw-switch-track {
+    background: var(--a11yw-accent);
+}
+
+.a11yw-switch[aria-checked="true"] .a11yw-switch-knob {
+    transform: translateX(18px);
+}
+
+/* Oversized widget: button and panel 50% bigger, scaled from the widget's
+   corner so they stay in place. Panel limits are divided by 1.5 so the scaled
+   panel still fits the viewport. */
+.a11yw-oversize .a11yw-toggle {
+    transform: scale(1.5);
+    transform-origin: bottom right;
+}
+
+.a11yw-oversize .a11yw-toggle:hover {
+    transform: scale(1.58);
+}
+
+.a11yw-oversize .a11yw-panel {
+    bottom: calc(var(--a11yw-offset-y) + 96px);
+    max-width: calc((100vw - 32px) / 1.5);
+    max-height: calc((100vh - var(--a11yw-offset-y) - 116px) / 1.5);
+    transform: scale(1.5);
+    transform-origin: bottom right;
+}
+
+.a11yw-oversize[data-position="left"] .a11yw-toggle,
+.a11yw-oversize[data-position="left"] .a11yw-panel {
+    transform-origin: bottom left;
 }
 
 .a11yw-reset {
@@ -361,17 +488,32 @@
         height: 28px;
     }
 
+    /* Oversized on a phone: full width once scaled, anchored to the widget's side */
+    .a11yw-oversize .a11yw-panel {
+        left: auto;
+        right: 16px;
+        bottom: calc(var(--a11yw-offset-y) + 88px);
+        width: calc((100vw - 32px) / 1.5);
+    }
+
+    .a11yw-oversize[data-position="left"] .a11yw-panel {
+        left: 16px;
+        right: auto;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .a11yw-toggle {
+    .a11yw-toggle,
+    .a11yw-switch-track,
+    .a11yw-switch-knob {
         transition: none;
     }
 }
 
 @media print {
     .a11yw,
-    .a11yw-overlay {
+    .a11yw-overlay,
+    .a11yw-focus-ring {
         display: none !important;
     }
 }
@@ -393,14 +535,15 @@ html.a11yw-contrast-1 picture,
 html.a11yw-contrast-1 video,
 html.a11yw-contrast-1 iframe,
 html.a11yw-contrast-1 .a11yw-toggle,
-html.a11yw-contrast-1 .a11yw-panel {
+html.a11yw-contrast-1 .a11yw-panel,
+html.a11yw-contrast-1 .a11yw-focus-ring {
     filter: invert(1) hue-rotate(180deg);
 }
 
 /* Contrast 2: dark */
 html.a11yw-contrast-2,
 html.a11yw-contrast-2 body,
-html.a11yw-contrast-2 body *:not(.a11yw):not(.a11yw *):not(.a11yw-overlay):not(.a11yw-overlay *) {
+html.a11yw-contrast-2 body *:not(.a11yw):not(.a11yw *):not(.a11yw-overlay):not(.a11yw-overlay *):not(.a11yw-focus-ring) {
     background-color: #000 !important;
     color: #fff !important;
     border-color: #fff !important;
@@ -418,7 +561,7 @@ html.a11yw-contrast-2 :is(h1, h2, h3, h4, h5, h6):not(.a11yw *) {
 /* Contrast 3: light */
 html.a11yw-contrast-3,
 html.a11yw-contrast-3 body,
-html.a11yw-contrast-3 body *:not(.a11yw):not(.a11yw *):not(.a11yw-overlay):not(.a11yw-overlay *) {
+html.a11yw-contrast-3 body *:not(.a11yw):not(.a11yw *):not(.a11yw-overlay):not(.a11yw-overlay *):not(.a11yw-focus-ring) {
     background-color: #fff !important;
     color: #000 !important;
     border-color: #000 !important;
@@ -472,6 +615,23 @@ html.a11yw-lineheight-3 body *:not(.a11yw):not(.a11yw *) {
     line-height: 2 !important;
 }
 
+/* Text align: left / right / centered / justified */
+html.a11yw-align-1 body *:not(.a11yw):not(.a11yw *) {
+    text-align: left !important;
+}
+
+html.a11yw-align-2 body *:not(.a11yw):not(.a11yw *) {
+    text-align: right !important;
+}
+
+html.a11yw-align-3 body *:not(.a11yw):not(.a11yw *) {
+    text-align: center !important;
+}
+
+html.a11yw-align-4 body *:not(.a11yw):not(.a11yw *) {
+    text-align: justify !important;
+}
+
 /* Readable font. Icon fonts are left alone. To use the real OpenDyslexic font,
    add an @font-face named "OpenDyslexic" pointing at self-hosted files. */
 html.a11yw-font-1 body *:not(.a11yw):not(.a11yw *):not(i):not([class*="icon"]):not([class*="fa-"]) {
@@ -517,11 +677,21 @@ html.a11yw-cursor-2 * {
     cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24'><path d='M4 2l16 11.5-7 1.2 4.2 7.3-3 1.6-4.1-7.4L4 21z' fill='white' stroke='black' stroke-width='1.2' stroke-linejoin='round'/></svg>") 8 4, auto !important;
 }
 
-/* Highlight focus */
-html.a11yw-focus-1 *:not(.a11yw *):focus {
-    outline: 4px solid #e4cb1e !important;
-    outline-offset: 3px !important;
-    box-shadow: 0 0 0 8px #000 !important;
+/* Highlight focus: ring positioned over the focused element by JS.
+   Black with white edges so it stands out on light, dark and brand-coloured
+   (yellow) backgrounds alike. */
+.a11yw-focus-ring {
+    position: fixed;
+    z-index: 2147482998;
+    box-sizing: border-box;
+    pointer-events: none;
+    border: 4px solid #000;
+    border-radius: 8px;
+    box-shadow: 0 0 0 3px #fff, inset 0 0 0 2px #fff, 0 0 12px 4px rgba(0, 0, 0, .35);
+}
+
+.a11yw-focus-ring[hidden] {
+    display: none !important;
 }
 
 /* Read aloud: the element being spoken */

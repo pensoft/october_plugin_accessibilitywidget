@@ -19,7 +19,8 @@ class Settings extends Model
         $this->color = '#313131';
         $this->offset_x = 20;
         $this->offset_y = 20;
-        $this->hidden_features = [];
+        // Reading guide and highlight focus are off by default; they can be enabled in the backend
+        $this->hidden_features = ['guide', 'focus'];
     }
 
     public function getHiddenFeaturesOptions()
@@ -45,10 +46,12 @@ class Settings extends Model
             'cursor'     => 'Big cursor',
             'guide'      => 'Reading guide',
             'lineheight' => 'Line height',
+            'align'      => 'Text align',
             'saturation' => 'Saturation',
             'focus'      => 'Highlight focus',
             'speech'     => 'Read aloud',
             'structure'  => 'Page structure',
+            'oversize'   => 'Oversized widget switch',
         ];
     }
 }

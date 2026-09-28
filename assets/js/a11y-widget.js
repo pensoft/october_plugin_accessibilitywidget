@@ -22,6 +22,7 @@
     if (window.A11yWidget) return;
 
     var STORE_KEY = 'a11yw-settings-v1';
+    var OVERSIZE_KEY = 'a11yw-oversize';
     var root = document.documentElement;
     var script = document.currentScript;
     var cfg = {
@@ -37,12 +38,17 @@
     var ICONS = {
         toggle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4.2" r="2.1" fill="currentColor" stroke="none"/><path d="M4 8.5l8 1.6 8-1.6M12 10.1v4.6M12 14.7l-3.6 6.6M12 14.7l3.6 6.6"/></svg>',
         close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+        check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
         back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
         contrast: '<circle cx="12" cy="12" r="9"/><path d="M12 3v18a9 9 0 0 0 0-18z" fill="currentColor"/>',
         links: '<path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/>',
         textsize: '<path d="M3 7V5h10v2M8 5v14M6 19h4"/><path d="M14 12v-1.5h7V12M17.5 10.5V19M16 19h3"/>',
         spacing: '<path d="M3 12h18M6 8.5L2.5 12 6 15.5M18 8.5l3.5 3.5-3.5 3.5"/>',
         lineheight: '<path d="M11 6h10M11 12h10M11 18h10M5 4v16M2.5 6.5L5 4l2.5 2.5M2.5 17.5L5 20l2.5-2.5"/>',
+        align: '<path d="M4 6h16M4 10h10M4 14h16M4 18h10"/>',
+        'align-2': '<path d="M4 6h16M10 10h10M4 14h16M10 18h10"/>',
+        'align-3': '<path d="M4 6h16M7 10h10M4 14h16M7 18h10"/>',
+        'align-4': '<path d="M4 6h16M4 10h16M4 14h16M4 18h16"/>',
         font: '<path d="M3 19L8.5 5h1L15 19M5.5 14h7"/><circle cx="18.5" cy="16" r="2.5"/><path d="M21 12v7"/>',
         saturation: '<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/><path d="M12 20a6 6 0 0 1-6-6" />',
         images: '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="M21 16l-5-5-8 8M3 3l18 18"/>',
@@ -69,6 +75,7 @@
         { id: 'cursor', label: 'Big cursor', levels: ['Black', 'White'] },
         { id: 'guide', label: 'Reading guide', levels: ['Reading line', 'Reading mask'] },
         { id: 'lineheight', label: 'Line height', levels: ['1.5×', '1.75×', '2×'] },
+        { id: 'align', label: 'Text align', levels: ['Left', 'Right', 'Centered', 'Justified'] },
         { id: 'saturation', label: 'Saturation', levels: ['Low', 'High', 'Greyscale'] },
         { id: 'focus', label: 'Highlight focus', levels: ['On'] }
     ];
@@ -342,6 +349,91 @@
         if (target) target.classList.add('a11yw-speaking');
     }
 
+    /* Highlight focus: a ring drawn over the focused element in its own fixed
+       layer. A plain CSS outline gets clipped by overflow:hidden parents (menus,
+       sliders), covered by neighbouring elements, or removed by the site's own
+       outline rules. Keyboard focus (:focus-visible) is always highlighted; mouse
+       focus only on controls, so clicking inside a tabindex="-1" region such as
+       the skip-link target does not outline the whole page content. */
+    var focusRing = null, focusTarget = null, focusFrame = 0, focusKey = '';
+    var FOCUS_CONTROLS = 'a[href], button, input, select, textarea, summary, [contenteditable=""], [contenteditable=true],' +
+        '[role=button], [role=link], [role=tab], [role=menuitem], [role=checkbox], [role=radio], [role=switch], [role=option]';
+
+    function applyFocus() {
+        document.removeEventListener('focusin', onFocusIn, true);
+        document.removeEventListener('focusout', hideFocusRing, true);
+        if (state.focus !== 1) {
+            hideFocusRing();
+            if (focusRing) { focusRing.remove(); focusRing = null; }
+            return;
+        }
+        if (!focusRing) {
+            focusRing = el('div', { 'class': 'a11yw-focus-ring', 'aria-hidden': 'true', hidden: '' });
+            document.body.appendChild(focusRing);
+        }
+        document.addEventListener('focusin', onFocusIn, true);
+        document.addEventListener('focusout', hideFocusRing, true);
+    }
+
+    function isFocusVisible(target) {
+        try { return target.matches(':focus-visible'); } catch (e) { return true; }
+    }
+
+    function onFocusIn(e) {
+        var target = e.target;
+        if (!(target instanceof Element) || target.closest('.a11yw') ||
+            !(isFocusVisible(target) || target.matches(FOCUS_CONTROLS))) {
+            hideFocusRing();
+            return;
+        }
+        focusTarget = target;
+        focusKey = '';
+        trackFocus();
+    }
+
+    function hideFocusRing() {
+        if (focusFrame) cancelAnimationFrame(focusFrame);
+        focusFrame = 0;
+        focusTarget = null;
+        if (focusRing) focusRing.hidden = true;
+    }
+
+    // Visually hidden controls (e.g. a styled checkbox) are ringed via their
+    // label or parent instead.
+    function focusBox(target) {
+        var candidates = [target, target.labels && target.labels[0], target.parentElement];
+        for (var i = 0; i < candidates.length; i++) {
+            var r = candidates[i] && candidates[i].getBoundingClientRect();
+            if (r && (r.width > 2 || r.height > 2)) return r;
+        }
+        return null;
+    }
+
+    // Follows the element every frame while it has focus, so the ring stays on it
+    // through scrolling, resizing, sliders and animated menus.
+    function trackFocus() {
+        focusFrame = 0;
+        if (!focusTarget || !focusRing) return;
+        if (!focusTarget.isConnected || document.activeElement !== focusTarget) {
+            hideFocusRing();
+            return;
+        }
+        var box = focusBox(focusTarget);
+        var key = box ? [box.left, box.top, box.width, box.height].join(',') : '';
+        if (key !== focusKey) {
+            focusKey = key;
+            focusRing.hidden = !box;
+            if (box) {
+                var pad = 4;
+                focusRing.style.left = (box.left - pad) + 'px';
+                focusRing.style.top = (box.top - pad) + 'px';
+                focusRing.style.width = (box.width + pad * 2) + 'px';
+                focusRing.style.height = (box.height + pad * 2) + 'px';
+            }
+        }
+        focusFrame = requestAnimationFrame(trackFocus);
+    }
+
     function applyAll() {
         applyClasses();
         applyFilter();
@@ -350,6 +442,7 @@
         watchTextSize();
         applyAnimations();
         applyGuide();
+        applyFocus();
         applySpeech();
     }
 
@@ -397,11 +490,17 @@
             var steps = f.levels.length > 1
                 ? '<span class="a11yw-steps" aria-hidden="true">' + f.levels.map(function () { return '<i></i>'; }).join('') + '</span>'
                 : '';
-            return '<button type="button" class="a11yw-tile" data-feature="' + f.id + '" aria-pressed="false">' +
+            // The tile steps through the levels; the checkbox in its corner, shown
+            // while the feature is on, switches it straight off.
+            return '<div class="a11yw-tile-wrap">' +
+                '<button type="button" class="a11yw-tile" data-feature="' + f.id + '" aria-pressed="false">' +
                 '<span class="a11yw-tile-icon">' + icon(f.id) + '</span>' +
                 '<span class="a11yw-tile-label">' + f.label + '</span>' +
                 (f.levels.length > 1 ? '<span class="a11yw-tile-state"></span>' : '') +
-                steps + '</button>';
+                steps + '</button>' +
+                '<button type="button" class="a11yw-tile-off" data-off="' + f.id + '" aria-label="Turn off ' + f.label + '" title="Turn off" hidden>' +
+                ICONS.check + '</button>' +
+                '</div>';
         }).join('');
 
         ui.panel.innerHTML =
@@ -423,6 +522,12 @@
                 '</div>' +
             '</div>' +
             '<div class="a11yw-foot">' +
+                (cfg.hide.indexOf('oversize') === -1
+                    ? '<button type="button" class="a11yw-switch" data-action="oversize" role="switch" aria-checked="false">' +
+                        '<span>Oversized widget</span>' +
+                        '<span class="a11yw-switch-track" aria-hidden="true"><span class="a11yw-switch-knob"></span></span>' +
+                      '</button>'
+                    : '') +
                 '<button type="button" class="a11yw-wide a11yw-reset" data-action="reset">' + icon('reset') + '<span>Reset all settings</span></button>' +
             '</div>';
         ui.panel.querySelectorAll('.a11yw-icon-btn svg').forEach(function (s) {
@@ -446,6 +551,25 @@
         });
 
         renderTiles();
+        applyOversize();
+    }
+
+    /* Oversized widget: shows the button and panel 50% bigger. It is a setting of
+       the widget itself, not of the page, so "Reset all settings" leaves it alone. */
+    var oversize = false;
+    try { oversize = localStorage.getItem(OVERSIZE_KEY) === '1'; } catch (e) { /* storage blocked */ }
+
+    function applyOversize() {
+        var on = oversize && cfg.hide.indexOf('oversize') === -1;
+        ui.widget.classList.toggle('a11yw-oversize', on);
+        var sw = ui.panel.querySelector('[data-action=oversize]');
+        if (sw) sw.setAttribute('aria-checked', on ? 'true' : 'false');
+    }
+
+    function toggleOversize() {
+        oversize = !oversize;
+        try { localStorage.setItem(OVERSIZE_KEY, oversize ? '1' : '0'); } catch (e) { /* storage blocked */ }
+        applyOversize();
     }
 
     function renderTiles() {
@@ -458,6 +582,14 @@
             tile.querySelectorAll('.a11yw-steps i').forEach(function (dot, i) {
                 dot.classList.toggle('is-on', i < level);
             });
+            tile.parentNode.querySelector('.a11yw-tile-off').hidden = !level;
+            // Features with an icon per level (e.g. align-2) show the current one
+            var iconName = ICONS[f.id + '-' + level] ? f.id + '-' + level : f.id;
+            var iconBox = tile.querySelector('.a11yw-tile-icon');
+            if (iconBox.getAttribute('data-icon') !== iconName) {
+                iconBox.setAttribute('data-icon', iconName);
+                iconBox.innerHTML = icon(iconName);
+            }
         });
     }
 
@@ -477,6 +609,18 @@
         }
     }
 
+    function turnOff(id) {
+        var f = byId[id];
+        state[id] = 0;
+        save();
+        applyAll();
+        renderTiles();
+        announce(f.label + ': off');
+        // The checkbox disappears once the feature is off, so keep focus on its tile
+        var tile = ui.panel.querySelector('.a11yw-tile[data-feature="' + id + '"]');
+        if (tile) tile.focus();
+    }
+
     function resetAll() {
         FEATURES.forEach(function (f) { state[f.id] = 0; });
         save();
@@ -490,9 +634,12 @@
         if (!btn) return;
         var feature = btn.getAttribute('data-feature');
         if (feature) return cycle(feature);
+        var off = btn.getAttribute('data-off');
+        if (off) return turnOff(off);
         switch (btn.getAttribute('data-action')) {
             case 'close': return close();
             case 'reset': return resetAll();
+            case 'oversize': return toggleOversize();
             case 'structure': return showView('structure');
             case 'back': return showView('main');
         }

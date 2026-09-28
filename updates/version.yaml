@@ -2,3 +2,8 @@
       - First version of Accessibility Widget
 1.0.2:
     - Button title text
+1.0.3:
+    - Highlight focus hidden by default
+    - Checkbox on active tiles to switch a feature off in one click
+    - Text align tool (left, right, centered, justified)
+    - Oversized widget switch (button and panel 50% bigger)

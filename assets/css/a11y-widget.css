@@ -1,0 +1,571 @@
+/* Accessibility widget: see assets/js/a11y-widget.js */
+
+/* ======================================================================
+   Widget UI
+   Sizes are in px so the "Bigger text" setting never affects the widget.
+   ====================================================================== */
+
+.a11yw {
+    --a11yw-accent: #313131;
+    --a11yw-accent-contrast: #ffffff;
+    --a11yw-highlight: #e4cb1e;
+    --a11yw-bg: #ffffff;
+    --a11yw-surface: #f3f4f6;
+    --a11yw-text: #1d1d1f;
+    --a11yw-muted: #5b5f66;
+    --a11yw-border: #d4d7dc;
+    --a11yw-offset-x: 20px;
+    --a11yw-offset-y: 20px;
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-size: 15px;
+    line-height: 1.35;
+    letter-spacing: normal;
+    word-spacing: normal;
+    color: var(--a11yw-text);
+}
+
+.a11yw *,
+.a11yw *::before,
+.a11yw *::after {
+    box-sizing: border-box;
+    font-family: inherit !important;
+    letter-spacing: inherit;
+    word-spacing: inherit;
+}
+
+.a11yw [hidden] {
+    display: none !important;
+}
+
+.a11yw svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* :where() keeps this at zero specificity so component rules (toggle, reset,
+   pressed tiles) can set their own colours. */
+:where(.a11yw) button {
+    font: inherit;
+    color: inherit;
+    margin: 0;
+    cursor: pointer;
+}
+
+.a11yw button:focus-visible {
+    outline: 3px solid var(--a11yw-highlight);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 6px #000;
+}
+
+.a11yw-sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    margin: -1px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+/* Floating button */
+.a11yw-toggle {
+    position: fixed;
+    bottom: var(--a11yw-offset-y);
+    right: var(--a11yw-offset-x);
+    z-index: 2147483000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    padding: 0;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    background: var(--a11yw-accent);
+    color: #ffffff;
+    line-height: 0;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .3);
+    transition: transform .15s ease;
+}
+
+.a11yw-toggle svg {
+    flex: none;
+    width: 32px;
+    height: 32px;
+    color: #ffffff;
+}
+
+.a11yw-toggle:hover {
+    transform: scale(1.06);
+}
+
+.a11yw[data-position="left"] .a11yw-toggle {
+    right: auto;
+    left: var(--a11yw-offset-x);
+}
+
+/* Panel */
+.a11yw-panel {
+    position: fixed;
+    bottom: calc(var(--a11yw-offset-y) + 68px);
+    right: var(--a11yw-offset-x);
+    z-index: 2147483001;
+    display: flex;
+    flex-direction: column;
+    width: 400px;
+    max-width: calc(100vw - 32px);
+    max-height: calc(100vh - var(--a11yw-offset-y) - 88px);
+    background: var(--a11yw-bg);
+    border: 1px solid var(--a11yw-border);
+    border-radius: 14px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, .28);
+    overflow: hidden;
+    text-align: left;
+}
+
+.a11yw[data-position="left"] .a11yw-panel {
+    right: auto;
+    left: var(--a11yw-offset-x);
+}
+
+.a11yw-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 12px 12px 18px;
+    background: var(--a11yw-accent);
+    color: var(--a11yw-accent-contrast);
+}
+
+.a11yw-title {
+    flex: 1;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+    color: inherit !important;
+    text-transform: none !important;
+}
+
+.a11yw-icon-btn {
+    flex: none;
+    width: 40px;
+    height: 40px;
+    padding: 9px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+}
+
+.a11yw-icon-btn:hover {
+    background: rgba(255, 255, 255, .15);
+}
+
+.a11yw-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px;
+    overscroll-behavior: contain;
+}
+
+.a11yw-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+    gap: 10px;
+}
+
+.a11yw-tile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+    min-height: 112px;
+    padding: 14px 8px 20px;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    background: var(--a11yw-surface);
+    text-align: center;
+}
+
+.a11yw-tile:hover {
+    border-color: var(--a11yw-accent);
+}
+
+.a11yw-tile[aria-pressed="true"] {
+    background: var(--a11yw-accent);
+    color: var(--a11yw-accent-contrast);
+    border-color: var(--a11yw-highlight);
+}
+
+.a11yw-tile-icon {
+    width: 32px;
+    height: 32px;
+}
+
+.a11yw-tile-label {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.a11yw-tile-state {
+    font-size: 12px;
+    color: var(--a11yw-muted);
+}
+
+.a11yw-tile[aria-pressed="true"] .a11yw-tile-state {
+    color: inherit;
+}
+
+.a11yw-steps {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 8px;
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+}
+
+.a11yw-steps i {
+    display: block;
+    width: 16px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--a11yw-border);
+}
+
+.a11yw-steps i.is-on {
+    background: var(--a11yw-highlight);
+}
+
+.a11yw-wide {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 48px;
+    margin-top: 12px !important;
+    padding: 10px 14px;
+    border: 2px solid var(--a11yw-accent);
+    border-radius: 10px;
+    background: var(--a11yw-bg);
+    font-weight: 700;
+}
+
+.a11yw-wide svg {
+    width: 22px;
+    height: 22px;
+}
+
+.a11yw-wide:hover {
+    background: var(--a11yw-surface);
+}
+
+.a11yw-foot {
+    padding: 0 14px 14px;
+}
+
+.a11yw-reset {
+    background: var(--a11yw-accent);
+    color: var(--a11yw-accent-contrast);
+}
+
+.a11yw-reset:hover {
+    background: #000;
+}
+
+/* Page structure view */
+.a11yw-subtitle {
+    margin: 4px 0 8px !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    color: var(--a11yw-text) !important;
+    text-transform: none !important;
+}
+
+.a11yw-subtitle ~ .a11yw-subtitle {
+    margin-top: 18px !important;
+}
+
+.a11yw-list {
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.a11yw-list li {
+    margin: 0 0 4px !important;
+    padding: 0 0 0 var(--a11yw-indent, 0) !important;
+}
+
+.a11yw-list li::before {
+    content: none !important;
+}
+
+.a11yw-struct {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--a11yw-border);
+    border-radius: 8px;
+    background: var(--a11yw-bg);
+    text-align: left;
+}
+
+.a11yw-struct:hover {
+    background: var(--a11yw-surface);
+}
+
+.a11yw-struct-tag {
+    flex: none;
+    min-width: 34px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: var(--a11yw-accent);
+    color: var(--a11yw-accent-contrast);
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.a11yw-empty {
+    color: var(--a11yw-muted);
+}
+
+@media (max-width: 480px) {
+    .a11yw-panel,
+    .a11yw[data-position="left"] .a11yw-panel {
+        left: 16px;
+        right: 16px;
+        bottom: calc(var(--a11yw-offset-y) + 62px);
+        width: auto;
+        max-width: none;
+    }
+
+    .a11yw-toggle {
+        width: 50px;
+        height: 50px;
+    }
+
+    .a11yw-toggle svg {
+        width: 28px;
+        height: 28px;
+    }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .a11yw-toggle {
+        transition: none;
+    }
+}
+
+@media print {
+    .a11yw,
+    .a11yw-overlay {
+        display: none !important;
+    }
+}
+
+/* ======================================================================
+   Page adjustments, switched on by classes on <html>.
+   Every rule skips the widget itself.
+   ====================================================================== */
+
+/* Contrast 1: invert. The filter itself is set on <html> by JS. Media is
+   inverted back so photos look normal. The html background paints the canvas,
+   which the filter does not reach. */
+html.a11yw-contrast-1 {
+    background-color: #111 !important;
+}
+
+html.a11yw-contrast-1 img:not(picture img),
+html.a11yw-contrast-1 picture,
+html.a11yw-contrast-1 video,
+html.a11yw-contrast-1 iframe,
+html.a11yw-contrast-1 .a11yw-toggle,
+html.a11yw-contrast-1 .a11yw-panel {
+    filter: invert(1) hue-rotate(180deg);
+}
+
+/* Contrast 2: dark */
+html.a11yw-contrast-2,
+html.a11yw-contrast-2 body,
+html.a11yw-contrast-2 body *:not(.a11yw):not(.a11yw *):not(.a11yw-overlay):not(.a11yw-overlay *) {
+    background-color: #000 !important;
+    color: #fff !important;
+    border-color: #fff !important;
+}
+
+html.a11yw-contrast-2 a[href]:not(.a11yw *),
+html.a11yw-contrast-2 a[href]:not(.a11yw *) * {
+    color: #ffeb3b !important;
+}
+
+html.a11yw-contrast-2 :is(h1, h2, h3, h4, h5, h6):not(.a11yw *) {
+    color: #8fe9ff !important;
+}
+
+/* Contrast 3: light */
+html.a11yw-contrast-3,
+html.a11yw-contrast-3 body,
+html.a11yw-contrast-3 body *:not(.a11yw):not(.a11yw *):not(.a11yw-overlay):not(.a11yw-overlay *) {
+    background-color: #fff !important;
+    color: #000 !important;
+    border-color: #000 !important;
+}
+
+html.a11yw-contrast-3 a[href]:not(.a11yw *),
+html.a11yw-contrast-3 a[href]:not(.a11yw *) * {
+    color: #0b3fbf !important;
+}
+
+/* Highlight links */
+html.a11yw-links-1 a[href]:not(.a11yw *) {
+    outline: 3px solid #e4cb1e !important;
+    outline-offset: 2px !important;
+    background-color: #fff6c7 !important;
+    color: #000 !important;
+    text-decoration: underline !important;
+    text-underline-offset: 3px !important;
+}
+
+html.a11yw-links-1 a[href]:not(.a11yw *) * {
+    color: #000 !important;
+}
+
+/* Text spacing */
+html.a11yw-spacing-1 body *:not(.a11yw):not(.a11yw *) {
+    letter-spacing: .05em !important;
+    word-spacing: .1em !important;
+}
+
+html.a11yw-spacing-2 body *:not(.a11yw):not(.a11yw *) {
+    letter-spacing: .1em !important;
+    word-spacing: .2em !important;
+}
+
+html.a11yw-spacing-3 body *:not(.a11yw):not(.a11yw *) {
+    letter-spacing: .15em !important;
+    word-spacing: .3em !important;
+}
+
+/* Line height */
+html.a11yw-lineheight-1 body *:not(.a11yw):not(.a11yw *) {
+    line-height: 1.5 !important;
+}
+
+html.a11yw-lineheight-2 body *:not(.a11yw):not(.a11yw *) {
+    line-height: 1.75 !important;
+}
+
+html.a11yw-lineheight-3 body *:not(.a11yw):not(.a11yw *) {
+    line-height: 2 !important;
+}
+
+/* Readable font. Icon fonts are left alone. To use the real OpenDyslexic font,
+   add an @font-face named "OpenDyslexic" pointing at self-hosted files. */
+html.a11yw-font-1 body *:not(.a11yw):not(.a11yw *):not(i):not([class*="icon"]):not([class*="fa-"]) {
+    font-family: Verdana, Tahoma, Arial, sans-serif !important;
+}
+
+html.a11yw-font-2 body *:not(.a11yw):not(.a11yw *):not(i):not([class*="icon"]):not([class*="fa-"]) {
+    font-family: "OpenDyslexic", "Comic Sans MS", "Comic Neue", Verdana, sans-serif !important;
+    font-style: normal !important;
+}
+
+/* Pause animations. AOS reveal elements are forced to their final state. */
+html.a11yw-animations-1 *:not(.a11yw *),
+html.a11yw-animations-1 *:not(.a11yw *)::before,
+html.a11yw-animations-1 *:not(.a11yw *)::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+}
+
+html.a11yw-animations-1 [data-aos] {
+    opacity: 1 !important;
+    transform: none !important;
+}
+
+/* Hide images */
+html.a11yw-images-1 :is(img, picture, video, figure > svg):not(.a11yw *) {
+    visibility: hidden !important;
+}
+
+html.a11yw-images-1 body *:not(.a11yw):not(.a11yw *) {
+    background-image: none !important;
+}
+
+/* Big cursor */
+html.a11yw-cursor-1,
+html.a11yw-cursor-1 * {
+    cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24'><path d='M4 2l16 11.5-7 1.2 4.2 7.3-3 1.6-4.1-7.4L4 21z' fill='black' stroke='white' stroke-width='1.2' stroke-linejoin='round'/></svg>") 8 4, auto !important;
+}
+
+html.a11yw-cursor-2,
+html.a11yw-cursor-2 * {
+    cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24'><path d='M4 2l16 11.5-7 1.2 4.2 7.3-3 1.6-4.1-7.4L4 21z' fill='white' stroke='black' stroke-width='1.2' stroke-linejoin='round'/></svg>") 8 4, auto !important;
+}
+
+/* Highlight focus */
+html.a11yw-focus-1 *:not(.a11yw *):focus {
+    outline: 4px solid #e4cb1e !important;
+    outline-offset: 3px !important;
+    box-shadow: 0 0 0 8px #000 !important;
+}
+
+/* Read aloud: the element being spoken */
+.a11yw-speaking {
+    outline: 3px dashed #e4cb1e !important;
+    outline-offset: 3px !important;
+}
+
+/* Reading guide overlay */
+.a11yw-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2147482999;
+    pointer-events: none;
+}
+
+.a11yw-guide-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: min(600px, 90vw);
+    height: 12px;
+    margin-left: calc(min(600px, 90vw) / -2);
+    background: #000;
+    border: 3px solid #e4cb1e;
+    border-radius: 6px;
+}
+
+.a11yw-mask {
+    position: absolute;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, .65);
+}
+
+.a11yw-mask-top {
+    top: 0;
+}
+
+.a11yw-mask-bottom {
+    bottom: 0;
+}
+
+.a11yw-overlay[data-mode="line"] .a11yw-mask,
+.a11yw-overlay[data-mode="mask"] .a11yw-guide-line {
+    display: none;
+}

@@ -1,0 +1,61 @@
+fields:
+    enabled:
+        label: 'pensoft.accessibilitywidget::lang.fields.enabled'
+        comment: 'pensoft.accessibilitywidget::lang.fields.enabled_comment'
+        type: switch
+        default: true
+
+    position:
+        label: 'pensoft.accessibilitywidget::lang.fields.position'
+        type: dropdown
+        span: left
+        default: right
+        options:
+            right: 'pensoft.accessibilitywidget::lang.fields.position_right'
+            left: 'pensoft.accessibilitywidget::lang.fields.position_left'
+        trigger:
+            action: show
+            field: enabled
+            condition: checked
+
+    color:
+        label: 'pensoft.accessibilitywidget::lang.fields.color'
+        comment: 'pensoft.accessibilitywidget::lang.fields.color_comment'
+        type: colorpicker
+        span: right
+        default: '#313131'
+        trigger:
+            action: show
+            field: enabled
+            condition: checked
+
+    offset_x:
+        label: 'pensoft.accessibilitywidget::lang.fields.offset_x'
+        comment: 'pensoft.accessibilitywidget::lang.fields.offset_comment'
+        type: number
+        span: left
+        default: 20
+        trigger:
+            action: show
+            field: enabled
+            condition: checked
+
+    offset_y:
+        label: 'pensoft.accessibilitywidget::lang.fields.offset_y'
+        comment: 'pensoft.accessibilitywidget::lang.fields.offset_comment'
+        type: number
+        span: right
+        default: 20
+        trigger:
+            action: show
+            field: enabled
+            condition: checked
+
+    hidden_features:
+        label: 'pensoft.accessibilitywidget::lang.fields.hidden_features'
+        comment: 'pensoft.accessibilitywidget::lang.fields.hidden_features_comment'
+        type: checkboxlist
+        trigger:
+            action: show
+            field: enabled
+            condition: checked
